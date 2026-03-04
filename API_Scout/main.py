@@ -7,4 +7,4 @@ response = requests.get(url)
 data = response.json()
 
 # Выводим по ключу
-print(f"Текущая стоимость 1 Биткоина($): {data["bitcoin"].get("usd")}")
+print(f"Текущая стоимость 1 Биткоина($): {data.get("bitcoin", {}).get("usd", "No data")}")
