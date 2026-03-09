@@ -2,34 +2,42 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 
+# Константы
 BASE_URL = "https://news.ycombinator.com/"
 CSV_FILENAME = "hacker_news.csv"
 
 
+# Достаём содержимое ссылки и возвращаем
+# Здесь же реализована пагинация
 def fetch_html(url):
     responses = []
 
     try:
         for i in range(5):
             response = requests.get(f"{url}?={i + 1}")
-            response.raise_for_status()
+            response.raise_for_status()  # Бросит исключение, если статус не 200
             responses.append(response.text)
 
         return "".join(responses)
 
+    # Если raise_for_status() сработал
     except requests.exceptions.HTTPError as http_err:
         print(f"Server Error: {type(http_err).__name__}")
         return None
 
+    # Если ошибка на стороне клиента(к примеру, интернет отвалился)
     except requests.exceptions.RequestException as req_err:
         print(f"Your request returned an exception: {type(req_err).__name__}.")
         return None
 
 
+# Парсим новости (берём HTML, отдаём сырые данные)
 def parse_news(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     news_data = []
 
+    # Дальнейший поиск элементов будет осуществляться
+    # относительно этого тега (<tr>)
     items = soup.find_all("tr", class_="athing submission")
 
     for item in items:
@@ -37,6 +45,7 @@ def parse_news(html_content):
         title = title_tag.text if title_tag else "No title"
         link = title_tag.get("href") if title_tag else ""
 
+        # Проверка на относительные ссылки
         if link.startswith("item"):
             link = BASE_URL + link
 
@@ -55,14 +64,17 @@ def parse_news(html_content):
     return news_data
 
 
+# Сохраняем полученные данные в csv-файл
 def save_to_csv(data, filename):
     if not data:
         print("No data to save")
         return
 
+    # Строка с заголовками в файле будет заполнена ключами первого словаря
     headers = data[0].keys()
 
     with open(filename, mode="w", encoding="utf-8", newline="") as f:
+        # Используем DictWriter, он удобнее для словарей
         writer = csv.DictWriter(f, fieldnames=headers)
         writer.writeheader()
         writer.writerows(data)
@@ -70,6 +82,7 @@ def save_to_csv(data, filename):
     print(f"Successfully saved {len(data)} news in {filename}")
 
 
+# ГЛАВНАЯ ФУНКЦИЯ: Запускает весь процесс
 def main():
     print("Parsing...")
     html = fetch_html(BASE_URL)
@@ -81,5 +94,6 @@ def main():
         print("Parsing canceled due to an Error")
 
 
+# Точка входа в программу
 if __name__ == "__main__":
     main()
