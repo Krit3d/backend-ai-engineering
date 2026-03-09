@@ -2,52 +2,79 @@ from bs4 import BeautifulSoup
 import requests
 import csv
 
-MAIN_URL = "https://news.ycombinator.com/"
+BASE_URL = "https://news.ycombinator.com/"
+CSV_FILENAME = "hacker_news.csv"
 
 
-def get_news_page(page_num=1):
-    r = requests.get(MAIN_URL + "?p=" + str(page_num))
+def fetch_html(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.text
 
-    # Превращаем сырой HTML-текст в объект BeautifulSoup, с которым удобно работать
-    soup = BeautifulSoup(r.text, "html.parser")
+    except requests.exceptions.HTTPError as http_err:
+        print(f"Server Error: {type(http_err).__name__}")
+        return None
 
-    # Выбираем все нужные теги по css-селектору.
-    # Аналогично можно сделать при помощи .find_all()
-    news_titles = soup.select(".titleline > a")
-    news_scores = soup.select(".score")
-    news_ages = soup.select(".age")
-
-    # Объединяем данные каждой из новостей в отельные кортежи
-    news_total = zip(news_titles, news_scores, news_ages)
-
-    return news_total
+    except requests.exceptions.RequestException as req_err:
+        print(f"Your request returned an exception: {type(req_err).__name__}.")
+        return None
 
 
-def fill_csv(news_items, csv_writer):
-    # Распаковываем каждый кортеж с данными
-    # Записываем эти данные в строки
-    for t, s, a in news_items:
-        title = t.text
-        link = t.get("href")
+def parse_news(html_content):
+    soup = BeautifulSoup(html_content, "html.parser")
+    news_data = []
+
+    items = soup.find_all("tr", class_="athing submission")
+
+    for item in items:
+        title_tag = item.select_one(".titleline > a")
+        title = title_tag.text if title_tag else "No title"
+        link = title_tag.get("href") if title_tag else ""
+
         if link.startswith("item"):
-            link = MAIN_URL + link
+            link = BASE_URL + link
 
-        points = s.text
-        age = a.text
+        subtext_row = item.find_next_sibling("tr")
 
-        csv_writer.writerow([title, link, points, age])
+        score_tag = subtext_row.select_one(".score")
+        score = score_tag.text if score_tag else "0 points"
+
+        age_tag = subtext_row.select_one(".age")
+        age = age_tag.text if age_tag else "N/A"
+
+        news_data.append(
+            {"Title": title, "Link": link, "Score": score, "Age": age}
+        )
+
+    return news_data
 
 
-# Создаём csv-файл
-with open(
-    "./Parser/hacker_news.csv", mode="w", encoding="utf-8", newline=""
-) as file:
-    writer = csv.writer(file)
-    writer.writerow(["Title", "Link", "Points", "Age"])  # Пишем шапку таблицы
+def save_to_csv(data, filename):
+    if not data:
+        print("No data to save")
+        return
 
-    # получаем новости постранично(пагинация)
-    news = [get_news_page(i + 1) for i in range(5)]
+    headers = data[0].keys()
 
-    # Заполняем файл строками c данными о каждой новости
-    for n in news:
-        fill_csv(n, writer)
+    with open(filename, mode="w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        writer.writeheader()
+        writer.writerows(data)
+
+    print(f"Successfully saved {len(data)} news in {filename}")
+
+
+def main():
+    print("Parsing...")
+    html = fetch_html(BASE_URL)
+
+    if html is not None:
+        parsed_data = parse_news(html)
+        save_to_csv(parsed_data, CSV_FILENAME)
+    else:
+        print("Parsing canceled due to an Error")
+
+
+if __name__ == "__main__":
+    main()
