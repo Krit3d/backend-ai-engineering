@@ -61,10 +61,17 @@ async def cmd_crypto(message: types.Message, coins: list, currencies: list):
 
     else:
         data = response.json()
+        raw_price = data.get(coin['id'], {}).get(currency, None)
+    
+        # Форматируем цену, чтобы избежать научной записи числа
+        if raw_price is not None:
+            formatted_price = f"{raw_price:.10f}".rstrip("0").rstrip(".")
+        else:
+            formatted_price = "No data"
 
         # Выводим стоимость криптовалюты
         await message.answer(
-            f"The current value of 1 {coin['name']} is {data.get(coin['id'], {}).get(currency, 'No data')} {currency.upper()}."
+            f"The current value of 1 {coin['name']} is {formatted_price} {currency.upper()}."
         )
 
 
