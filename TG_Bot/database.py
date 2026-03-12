@@ -6,7 +6,7 @@ def db_start():
     cur = con.cursor()
 
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, user_id INTEGER, full_name TEXT UNIQUE)"
+        "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, user_id INTEGER UNIQUE, full_name TEXT)"
     )
 
     con.close()
