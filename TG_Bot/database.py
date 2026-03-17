@@ -27,11 +27,26 @@ def cmd_insert(user_id, full_name):
 
 def get_all_users():
     con = sqlite3.connect("users.db")
-    cursor = con.cursor()
+    cur = con.cursor()
 
-    cursor.execute("SELECT user_id, full_name FROM users")
-    users = cursor.fetchall()
+    cur.execute("SELECT user_id, full_name FROM users")
+    users = cur.fetchall()
 
     con.close()
 
     return users
+
+
+def create_requests_log():
+    with sqlite3.connect("users.db") as con:
+        cur = con.cursor()
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS requests_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER REFERENCES users(user_id),
+                coin TEXT,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """
+        )

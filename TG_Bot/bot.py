@@ -4,7 +4,7 @@ import requests
 from aiogram import Bot, Dispatcher
 from handlers import basic_handlers, crypto_handler
 from config import BOT_TOKEN
-from database import db_start
+from database import db_start, create_requests_log
 
 # Список всех монет
 COINS_LIST = requests.get("https://api.coingecko.com/api/v3/coins/list").json()
@@ -23,8 +23,10 @@ dp = Dispatcher()
 
 # Запуск процесса поллинга новых апдейтов
 async def main():
-    # Создание таблицы с данными
+    # Создание таблицы с пользователями
     db_start()
+    # Побочная таблица, хранящая запросы пользователей
+    create_requests_log()
 
     # Регистрируем роутеры в диспетчере
     dp.include_router(crypto_handler.router)
