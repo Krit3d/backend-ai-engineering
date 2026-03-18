@@ -4,6 +4,8 @@ from random import choice
 from aiogram import types, Router
 from aiogram.filters.command import Command
 
+from database import write_into_log
+
 router = Router()
 
 
@@ -42,4 +44,9 @@ async def cmd_crypto(message: types.Message, coins: list, currencies: list):
         # Выводим стоимость криптовалюты
         await message.answer(
             f"The current value of 1 {coin['name']} is {formatted_price} {currency.upper()}."
+        )
+
+        # Заносим запрос пользователя в лог
+        write_into_log(
+            message.from_user.id, f"{coin['name']} / {currency.upper()}"
         )

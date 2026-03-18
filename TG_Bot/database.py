@@ -50,3 +50,16 @@ def create_requests_log():
             )
         """
         )
+
+
+def write_into_log(user_id, coin):
+    with sqlite3.connect("users.db") as con:
+        cur = con.cursor()
+
+        try:
+            cur.execute(
+                "INSERT INTO requests_log (user_id, coin) VALUES (?, ?)",
+                (user_id, coin),
+            )
+        except sqlite3.Error as e:
+            print(f"DB Error: {type(e).__name__}.")
