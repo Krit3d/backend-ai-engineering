@@ -1,6 +1,7 @@
 from aiogram import F, types, Router
 from aiogram.filters.command import Command
 from database import cmd_insert, get_all_users, get_statistics
+from config import ADMIN_ID
 
 router = Router()
 
@@ -39,6 +40,10 @@ async def cmd_admin(message: types.Message):
 # Выводит статистику запросов пользователя
 @router.message(Command("stats"))
 async def cmd_stats(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("Access denied")
+        return
+
     statistics = get_statistics()
 
     if statistics:

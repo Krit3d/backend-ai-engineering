@@ -92,7 +92,7 @@ def get_statistics():
         else:
             query_list = cur.fetchall()
 
-            # # Debug: If still empty, print table counts
+            # # Debug: In case if query_list is empty
             # if not query_list:
             #     cur.execute("SELECT COUNT(*) FROM users")
             #     u_count = cur.fetchone()[0]
