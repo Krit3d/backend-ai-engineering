@@ -1,6 +1,7 @@
 from aiogram import F, types, Router
 from aiogram.filters.command import Command
-from database import cmd_insert, get_all_users
+from database import cmd_insert, get_all_users, get_statistics
+from config import ADMIN_ID
 
 router = Router()
 
@@ -22,6 +23,7 @@ async def cmd_help(message: types.Message):
     )
 
 
+# Команда /admin показывает список всех пользователей
 @router.message(Command("admin"))
 async def cmd_admin(message: types.Message):
     users = get_all_users()
@@ -33,6 +35,27 @@ async def cmd_admin(message: types.Message):
             txt += f"ID: {user[0]} | Имя: {user[1]}\n"
 
         await message.answer(txt)
+
+
+# Выводит статистику запросов пользователей
+@router.message(Command("stats"))
+async def cmd_stats(message: types.Message):
+    # Благодаря этой проверке команда /stats доступна только админу
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("Access denied")
+        return
+
+    statistics = get_statistics()
+
+    if statistics:
+        coin_stats = [
+            f"User {name} searched {coin} price for {counter} times."
+            for name, coin, counter in statistics
+        ]
+
+        await message.answer("\n".join(coin_stats))
+    else:
+        await message.answer("No statistics yet or the query is wrong.")
 
 
 # Хэндлер для фото
