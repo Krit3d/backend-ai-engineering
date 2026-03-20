@@ -4,7 +4,7 @@ from random import choice
 from aiogram import types, Router
 from aiogram.filters.command import Command
 
-from database import write_into_log
+from db_instanse import db
 
 router = Router()
 
@@ -53,6 +53,6 @@ async def cmd_crypto(message: types.Message, coins: list, currencies: list):
         )
 
         # Заносим запрос пользователя в лог
-        write_into_log(
+        db.write_into_log(
             message.from_user.id, f"{coin['name']} / {currency.upper()}"
         )

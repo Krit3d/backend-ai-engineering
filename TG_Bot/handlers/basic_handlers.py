@@ -1,6 +1,6 @@
 from aiogram import F, types, Router
 from aiogram.filters.command import Command
-from database import cmd_insert, get_all_users, get_statistics
+from db_instanse import db
 from config import ADMIN_ID
 
 router = Router()
@@ -12,7 +12,7 @@ async def cmd_start(message: types.Message):
     await message.answer(
         f"Hello, {message.from_user.full_name}. I'm at your service. What can I do for you?"
     )
-    cmd_insert(message.from_user.id, message.from_user.full_name)
+    db.insert_user(message.from_user.id, message.from_user.full_name)
 
 
 # Хэндлер для команды /help
@@ -26,7 +26,7 @@ async def cmd_help(message: types.Message):
 # Команда /admin показывает список всех пользователей
 @router.message(Command("admin"))
 async def cmd_admin(message: types.Message):
-    users = get_all_users()
+    users = db.get_all_users()
 
     if users:
         txt = "List of users:\n"
@@ -45,7 +45,7 @@ async def cmd_stats(message: types.Message):
         await message.answer("Access denied")
         return
 
-    statistics = get_statistics()
+    statistics = db.get_statistics()
 
     if statistics:
         coin_stats = [
