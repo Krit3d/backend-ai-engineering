@@ -1,4 +1,4 @@
 venv/
 __pycache__/
-TG_Bot/config.py
+TG_Bot/.env
 *.db
