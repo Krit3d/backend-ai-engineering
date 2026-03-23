@@ -1,14 +1,16 @@
 import sqlite3
 
 
+# Main class containing all methods with SQL-queries
 class Database:
     def __init__(self, db_file):
-        # Сохраняем имя файла в внутри объекта
+        # Store filename in object
         self.db_file = db_file
 
-        # Сразу при создании объекта инициализируем таблицы
+        # Instant init of tables when creating an obj
         self._create_tables()
 
+    # Only two tables: users and requests_log
     def _create_tables(self):
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
@@ -33,6 +35,7 @@ class Database:
             """
             )
 
+    # Enter user data on /start command
     def insert_user(self, user_id, full_name):
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
@@ -45,6 +48,7 @@ class Database:
             except sqlite3.Error as e:
                 print(f"DB Error: {type(e).__name__}.")
 
+    # Simple check to see if the user is blocked
     def is_user_banned(self, user_id):
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
@@ -54,8 +58,10 @@ class Database:
 
             user_data = cur.fetchone()
 
+            # Prevent errors by returning bool answer
             return user_data and user_data[0]
 
+    # Two methods to change user status
     def ban_user(self, user_id):
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
@@ -70,6 +76,7 @@ class Database:
                 "UPDATE users SET is_banned = 0 WHERE user_id = ?", (user_id,)
             )
 
+    # Getting list of users by /admin command
     def get_all_users(self):
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
@@ -79,6 +86,7 @@ class Database:
 
         return users
 
+    # Just a logging of user's requests
     def write_into_log(self, user_id, coin):
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
@@ -91,6 +99,7 @@ class Database:
             except sqlite3.Error as e:
                 print(f"DB Error: {type(e).__name__}.")
 
+    # Return list of grouped by user name crypto requests(/stats command)
     def get_statistics(self):
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
@@ -107,6 +116,7 @@ class Database:
                 )
             except sqlite3.Error as e:
                 print(f"DB Error: {type(e).__name__}.")
+                # Prevent error by explicit setting an empty list
                 query_list = []
             else:
                 query_list = cur.fetchall()

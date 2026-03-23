@@ -6,7 +6,7 @@ from config import ADMIN_ID
 router = Router()
 
 
-# Хэндлер для команды /start
+# Register the user and print hello
 @router.message(Command("start"))
 async def cmd_start(message: types.Message):
     await message.answer(
@@ -15,7 +15,7 @@ async def cmd_start(message: types.Message):
     db.insert_user(message.from_user.id, message.from_user.full_name)
 
 
-# Хэндлер для команды /help
+# Test handler(just to have it)
 @router.message(Command("help"))
 async def cmd_help(message: types.Message):
     await message.answer(
@@ -23,7 +23,7 @@ async def cmd_help(message: types.Message):
     )
 
 
-# Команда /admin показывает список всех пользователей
+# Display list of users
 @router.message(Command("admin"))
 async def cmd_admin(message: types.Message):
     users = db.get_all_users()
@@ -37,10 +37,10 @@ async def cmd_admin(message: types.Message):
         await message.answer(txt)
 
 
-# Выводит статистику запросов пользователей
+# Display user statistics
 @router.message(Command("stats"))
 async def cmd_stats(message: types.Message):
-    # Благодаря этой проверке команда /stats доступна только админу
+    # Check on admin rights
     if message.from_user.id != ADMIN_ID:
         await message.answer("Access denied")
         return
@@ -58,6 +58,7 @@ async def cmd_stats(message: types.Message):
         await message.answer("No statistics yet or the query is wrong.")
 
 
+# Ban and unban logic
 @router.message(Command("ban"))
 async def cmd_ban(message: types.Message, command: CommandObject):
     if message.from_user.id != ADMIN_ID:
@@ -65,6 +66,7 @@ async def cmd_ban(message: types.Message, command: CommandObject):
         return
 
     try:
+        # Get an ID of user to ban
         user_to_block = int(command.args)
     except (ValueError, TypeError):
         await message.answer("Please send a valid ID.")
@@ -98,13 +100,13 @@ async def cmd_unban(message: types.Message, command: CommandObject):
         await message.answer(f"User {user_to_unblock} has been unblocked.")
 
 
-# Хэндлер для фото
+# Photo handler
 @router.message(F.photo)
 async def photo_handler(message: types.Message):
     await message.answer("It's a photo, isn't it? Please, send me a text.")
 
 
-# Хэндлер для остальных сообщений
+# Handler to other messages(echo-logic)
 @router.message(F.text)
 async def echo_handler(message: types.Message):
     if message.text == "secret":
