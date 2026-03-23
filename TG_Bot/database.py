@@ -16,8 +16,9 @@ class Database:
                 """
                 CREATE TABLE IF NOT EXISTS users(
                     id INTEGER PRIMARY KEY, 
-                    user_id INTEGER UNIQUE, 
-                    full_name TEXT
+                    user_id INTEGER UNIQUE,
+                    full_name TEXT,
+                    is_banned INTEGER DEFAULT 0
                 )
             """
             )
@@ -43,6 +44,31 @@ class Database:
                 )
             except sqlite3.Error as e:
                 print(f"DB Error: {type(e).__name__}.")
+
+    def is_user_banned(self, user_id):
+        with sqlite3.connect(self.db_file) as con:
+            cur = con.cursor()
+            cur.execute(
+                "SELECT is_banned FROM users WHERE user_id = ?", (user_id,)
+            )
+
+            user_data = cur.fetchone()
+
+            return user_data and user_data[0]
+
+    def ban_user(self, user_id):
+        with sqlite3.connect(self.db_file) as con:
+            cur = con.cursor()
+            cur.execute(
+                "UPDATE users SET is_banned = 1 WHERE user_id = ?", (user_id,)
+            )
+
+    def unban_user(self, user_id):
+        with sqlite3.connect(self.db_file) as con:
+            cur = con.cursor()
+            cur.execute(
+                "UPDATE users SET is_banned = 0 WHERE user_id = ?", (user_id,)
+            )
 
     def get_all_users(self):
         with sqlite3.connect(self.db_file) as con:

@@ -1,5 +1,5 @@
 from aiogram import F, types, Router
-from aiogram.filters.command import Command
+from aiogram.filters.command import Command, CommandObject
 from db_instanse import db
 from config import ADMIN_ID
 
@@ -56,6 +56,46 @@ async def cmd_stats(message: types.Message):
         await message.answer("\n".join(coin_stats))
     else:
         await message.answer("No statistics yet or the query is wrong.")
+
+
+@router.message(Command("ban"))
+async def cmd_ban(message: types.Message, command: CommandObject):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("Access denied")
+        return
+
+    try:
+        user_to_block = int(command.args)
+    except (ValueError, TypeError):
+        await message.answer("Please send a valid ID.")
+        return
+    else:
+        if db.is_user_banned(user_to_block):
+            await message.answer("This user has already been banned")
+            return
+
+        db.ban_user(user_to_block)
+        await message.answer(f"User {user_to_block} has been blocked.")
+
+
+@router.message(Command("unban"))
+async def cmd_unban(message: types.Message, command: CommandObject):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("Access denied")
+        return
+
+    try:
+        user_to_unblock = int(command.args)
+    except (ValueError, TypeError):
+        await message.answer("Please send a valid ID.")
+        return
+    else:
+        if not db.is_user_banned(user_to_unblock):
+            await message.answer("This user is not banned")
+            return
+
+        db.unban_user(user_to_unblock)
+        await message.answer(f"User {user_to_unblock} has been unblocked.")
 
 
 # Хэндлер для фото

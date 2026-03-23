@@ -12,6 +12,10 @@ router = Router()
 # Хэндлер для команды /crypto
 @router.message(Command("crypto"))
 async def cmd_crypto(message: types.Message, coins: list, currencies: list):
+    if db.is_user_banned(message.from_user.id):
+        await message.answer("Access restricted.")
+        return
+
     coin = choice(coins)
     currency = choice(currencies)
     # # Test: point requests
