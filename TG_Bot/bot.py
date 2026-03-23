@@ -4,36 +4,29 @@ import requests
 from aiogram import Bot, Dispatcher
 from handlers import basic_handlers, crypto_handler
 from config import BOT_TOKEN
-from database import db_start, create_requests_log
 
-# Список всех монет
+# Request of two lists of coins to work with
 COINS_LIST = requests.get("https://api.coingecko.com/api/v3/coins/list").json()
-# Список котируемых монет(валют)
 COUNTER_CURRENCIES = requests.get(
     "https://api.coingecko.com/api/v3/simple/supported_vs_currencies"
 ).json()
 
-# Включаем логгирование сообщений для отладки
+# Enable logging of messages to debugging
 logging.basicConfig(level=logging.INFO)
 
-# Создаём основные объекты: бот и диспетчер
+# Create main objects
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 
-# Запуск процесса поллинга новых апдейтов
-async def main():
-    # Создание таблицы с пользователями
-    db_start()
-    # Побочная таблица, хранящая запросы пользователей
-    create_requests_log()
-
-    # Регистрируем роутеры в диспетчере
+async def main() -> None:
+    # Register routers in dispatcher
     dp.include_router(crypto_handler.router)
     dp.include_router(basic_handlers.router)
 
-    # Удаляем вебхук и пропускаем накопившиеся входящие сообщения
+    # Delete hooks and skip incoming messages
     await bot.delete_webhook(drop_pending_updates=True)
+    # Start polling process for new updates
     await dp.start_polling(
         bot,
         coins=COINS_LIST,
@@ -41,6 +34,6 @@ async def main():
     )
 
 
-# Точка входа в программу
+# Entry point
 if __name__ == "__main__":
     asyncio.run(main())
