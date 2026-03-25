@@ -1,4 +1,4 @@
-import requests
+import aiohttp
 from random import choice
 
 from aiogram import types, Router
@@ -12,7 +12,10 @@ router = Router()
 # Handler for /crypto command
 @router.message(Command("crypto"))
 async def cmd_crypto(
-    message: types.Message, coins: list, currencies: list
+    message: types.Message,
+    session: aiohttp.ClientSession,
+    coins: list,
+    currencies: list,
 ) -> None:
     if db.is_user_banned(message.from_user.id):
         await message.answer("Access restricted.")
@@ -29,24 +32,23 @@ async def cmd_crypto(
     url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin['id']}&vs_currencies={currency}"
 
     try:
-        response = requests.get(url)
-        response.raise_for_status()
+        async with session.get(url) as response:
+            response.raise_for_status()
+
+            data = await response.json()
 
     # If raise_for_status() worked:
-    except requests.exceptions.HTTPError as http_err:
-        if response.status_code == 429:
+    except aiohttp.ClientResponseError as http_err:
+        if http_err.status == 429:
             await message.answer("Too many requests.")
         else:
-            await message.answer(f"Server error: {type(http_err).__name__}.")
+            await message.answer(f"HTTP error: {type(http_err).__name__}.")
 
     # If the error is on the client side(internet lost connection):
-    except requests.exceptions.RequestException as req_err:
-        await message.answer(
-            f"Your request returned an exception: {type(req_err).__name__}."
-        )
+    except aiohttp.ClientError as con_err:
+        await message.answer(f"Connection error: {type(con_err).__name__}.")
 
     else:
-        data = response.json()
         raw_price = data.get(coin["id"], {}).get(currency, None)
 
         # Formatting the price to avoid scientific notation
