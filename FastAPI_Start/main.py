@@ -5,7 +5,6 @@ from pydantic import BaseModel, EmailStr
 from database import (
     create_table,
     add_user,
-    get_user_id,
     get_all_users,
 )
 
@@ -18,7 +17,7 @@ class UserCreate(BaseModel):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_table()
+    await create_table()
     yield
 
 
@@ -32,7 +31,7 @@ async def root() -> JSONResponse:
 
 @app.post("/api/users")
 async def create_user(user: UserCreate) -> JSONResponse:
-    user_id = add_user(user.username, user.age, user.email)
+    user_id = await add_user(user.username, user.age, user.email)
 
     return JSONResponse(
         content={
@@ -44,4 +43,4 @@ async def create_user(user: UserCreate) -> JSONResponse:
 
 @app.get("/api/users")
 async def get_users_data() -> list[dict]:
-    return get_all_users()
+    return await get_all_users()

@@ -1,12 +1,11 @@
 from pydantic import EmailStr
 from fastapi import HTTPException
-import sqlite3
+import aiosqlite
 
 
-def create_table() -> None:
-    with sqlite3.connect("users.db") as con:
-        cur = con.cursor()
-        cur.execute(
+async def create_table() -> None:
+    async with aiosqlite.connect("users.db") as con:
+        await con.execute(
             """
             CREATE TABLE IF NOT EXISTS users(
                 id INTEGER PRIMARY KEY, 
@@ -14,34 +13,32 @@ def create_table() -> None:
                 age INTEGER,
                 email TEXT UNIQUE
             )
-        """
+            """
         )
+        await con.commit()
 
 
-def add_user(username: str, age: int, email: EmailStr) -> int | None:
-    with sqlite3.connect("users.db") as con:
-        cur = con.cursor()
-
+async def add_user(username: str, age: int, email: EmailStr) -> int | None:
+    async with aiosqlite.connect("users.db") as con:
         try:
-            cur.execute(
+            cur = await con.execute(
                 """
                 INSERT INTO users (username, age, email) VALUES (?, ?, ?)
                 """,
                 (username, age, email),
             )
-        except sqlite3.IntegrityError:
+        except aiosqlite.IntegrityError:
             raise HTTPException(status_code=409, detail="User already exists!")
         else:
-            con.commit()
+            await con.commit()
 
             return cur.lastrowid
 
 
-def get_all_users() -> list[dict]:
-    with sqlite3.connect("users.db") as con:
-        cur = con.cursor()
+async def get_all_users() -> list[dict]:
+    async with aiosqlite.connect("users.db") as con:
+        async with con.execute("SELECT * FROM users") as cur:
+            columns = [desc[0] for desc in cur.description]
+            results = await cur.fetchall()
 
-        cur.execute("SELECT * FROM users")
-        columns = [desc[0] for desc in cur.description]
-        results = cur.fetchall()
-        return [dict(zip(columns, row)) for row in results]
+            return [dict(zip(columns, row)) for row in results]
