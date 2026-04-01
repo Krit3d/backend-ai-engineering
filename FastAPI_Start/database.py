@@ -1,5 +1,4 @@
 from pydantic import EmailStr
-from fastapi import HTTPException
 import aiosqlite
 
 
@@ -28,7 +27,7 @@ async def add_user(username: str, age: int, email: EmailStr) -> int | None:
                 (username, age, email),
             )
         except aiosqlite.IntegrityError:
-            raise HTTPException(status_code=409, detail="User already exists!")
+            raise ValueError
         else:
             await con.commit()
 

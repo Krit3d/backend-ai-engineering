@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, EmailStr
 from database import (
     create_table,
@@ -25,18 +24,21 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/")
-async def root() -> JSONResponse:
+async def root() -> dict:
     return {"status": "Ed is in prod"}
 
 
 @app.post("/api/users")
-async def create_user(user: UserCreate) -> JSONResponse:
-    user_id = await add_user(user.username, user.age, user.email)
-
-    return {
-        "message": f"User {user.username} with id={user_id} successfully created!",
-        "user": user.model_dump(),
-    }
+async def create_user(user: UserCreate) -> dict:
+    try:
+        user_id = await add_user(user.username, user.age, user.email)
+    except ValueError:
+        raise HTTPException(status_code=409, detail="User already exists!")
+    else:
+        return {
+            "message": f"User {user.username} with id={user_id} successfully created!",
+            "user": user.model_dump(),
+        }
 
 
 @app.get("/api/users")
