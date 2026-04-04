@@ -1,4 +1,5 @@
 from pydantic import EmailStr
+from typing import Any
 import aiosqlite
 
 
@@ -34,10 +35,24 @@ async def add_user(username: str, age: int, email: EmailStr) -> int | None:
             return cur.lastrowid
 
 
-async def get_all_users() -> list[dict]:
+async def get_user(user_id: int) -> dict[str, Any] | None:
     async with aiosqlite.connect("users.db") as con:
+        con.row_factory = aiosqlite.Row
+
+        async with con.execute(
+            "SELECT id, username, age, email FROM users WHERE id = ?",
+            (user_id,),
+        ) as cur:
+            row = await cur.fetchone()
+
+            return dict(row) if row else None
+
+
+async def get_all_users() -> list[dict[str, Any]]:
+    async with aiosqlite.connect("users.db") as con:
+        con.row_factory = aiosqlite.Row
+
         async with con.execute("SELECT * FROM users") as cur:
-            columns = [desc[0] for desc in cur.description]
             results = await cur.fetchall()
 
-            return [dict(zip(columns, row)) for row in results]
+            return [dict(row) for row in results]

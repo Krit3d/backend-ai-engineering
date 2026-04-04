@@ -1,14 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from ..database import add_user, get_all_users
-from pydantic import BaseModel, EmailStr
+from ..database import add_user, get_user, get_all_users
+from ..schemas.users import UserCreate, User
 
 router = APIRouter()
-
-
-class UserCreate(BaseModel):
-    username: str
-    age: int
-    email: EmailStr
 
 
 @router.post("/api/users")
@@ -18,12 +12,20 @@ async def create_user(user: UserCreate) -> dict:
     except ValueError:
         raise HTTPException(status_code=409, detail="User already exists!")
     else:
-        return {
-            "message": f"User {user.username} with id={user_id} successfully created!",
-            "user": user.model_dump(),
-        }
+        return User(id=user_id, **user.model_dump())
 
 
 @router.get("/api/users")
-async def get_users_data() -> list[dict]:
-    return await get_all_users()
+async def get_users_data() -> list[User]:
+    raw_users = await get_all_users()
+
+    return [User(**u) for u in raw_users]
+
+
+@router.get("/api/users/{user_id}")
+async def get_user_data(user_id: int) -> User:
+    raw_user = await get_user(user_id)
+    if raw_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return User(**raw_user)

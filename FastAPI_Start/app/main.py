@@ -16,5 +16,5 @@ app.include_router(users.router)
 
 
 @app.get("/")
-async def root() -> dict:
+async def root() -> dict[str, str]:
     return {"status": "Ed is in prod"}
