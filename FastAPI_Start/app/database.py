@@ -28,6 +28,7 @@ async def add_user(username: str, age: int, email: EmailStr) -> int | None:
                 (username, age, email),
             )
         except aiosqlite.IntegrityError:
+            # Any error for future handling in endpoints
             raise ValueError
         else:
             await con.commit()
@@ -37,6 +38,7 @@ async def add_user(username: str, age: int, email: EmailStr) -> int | None:
 
 async def get_user(user_id: int) -> dict[str, Any] | None:
     async with aiosqlite.connect("users.db") as con:
+        # Use Row class for getting keys(columns of table)
         con.row_factory = aiosqlite.Row
 
         async with con.execute(
