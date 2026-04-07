@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: .
+    restart: on-failure
+    container_name: fastapi_app
+    ports:
+      - '8000:8000'
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+
+  db:
+    image: postgres:18.3
+    restart: always
+    container_name: fastapi_db
+    environment:
+      POSTGRES_USER: post
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fastapi_db
+    ports:
+      - '5432:5432'
