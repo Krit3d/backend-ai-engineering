@@ -14,14 +14,15 @@ services:
     image: postgres:18.3
     restart: always
     container_name: fastapi_db
-    environment:
-      POSTGRES_USER: post
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: fastapi_db
     ports:
       - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER?Variable not set}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?Variable not set}
+      POSTGRES_DB: ${POSTGRES_DB?Variable not set}
+
 
 volumes:
   postgres_data:
