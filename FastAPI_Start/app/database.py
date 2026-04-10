@@ -1,60 +1,79 @@
 from pydantic import EmailStr
-from typing import Any
-import aiosqlite
+import asyncpg
+
+db_pool: asyncpg.Pool | None = None
+
+# Set pool once during app startup
+def set_db_pool(pool: asyncpg.Pool) -> None:
+    global db_pool
+    db_pool = pool
+
+# Return initialized pool or fail fast
+def _require_pool() -> asyncpg.Pool:
+    if db_pool is None:
+        raise RuntimeError("Database pool is not initialized")
+    return db_pool
 
 
 async def create_table() -> None:
-    async with aiosqlite.connect("users.db") as con:
+    pool = _require_pool()
+
+    async with pool.acquire() as con:
         await con.execute(
             """
-            CREATE TABLE IF NOT EXISTS users(
-                id INTEGER PRIMARY KEY, 
-                username TEXT,
-                age INTEGER,
-                email TEXT UNIQUE
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+                username TEXT NOT NULL,
+                age INTEGER NOT NULL,
+                email TEXT UNIQUE NOT NULL
             )
             """
         )
-        await con.commit()
 
 
-async def add_user(username: str, age: int, email: EmailStr) -> int | None:
-    async with aiosqlite.connect("users.db") as con:
-        try:
-            cur = await con.execute(
+async def add_user(username: str, age: int, email: EmailStr) -> int:
+    try:
+        pool = _require_pool()
+
+        async with pool.acquire() as con:
+            result = await con.fetchrow(
                 """
-                INSERT INTO users (username, age, email) VALUES (?, ?, ?)
+                INSERT INTO users (username, age, email)
+                VALUES ($1, $2, $3)
+                RETURNING id
                 """,
-                (username, age, email),
+                username,
+                age,
+                email,
             )
-        except aiosqlite.IntegrityError:
-            # Any error for future handling in endpoints
-            raise ValueError
-        else:
-            await con.commit()
+            if result is not None:
+                return result["id"]
 
-            return cur.lastrowid
+    except asyncpg.UniqueViolationError:
+        # Duplicate email (unique constraint)
+        raise ValueError
 
-
-async def get_user(user_id: int) -> dict[str, Any] | None:
-    async with aiosqlite.connect("users.db") as con:
-        # Use Row class for getting keys(columns of table)
-        con.row_factory = aiosqlite.Row
-
-        async with con.execute(
-            "SELECT id, username, age, email FROM users WHERE id = ?",
-            (user_id,),
-        ) as cur:
-            row = await cur.fetchone()
-
-            return dict(row) if row else None
+    except Exception:
+        # Optionally, re-raise or log for other errors
+        raise
 
 
-async def get_all_users() -> list[dict[str, Any]]:
-    async with aiosqlite.connect("users.db") as con:
-        con.row_factory = aiosqlite.Row
+async def get_user(user_id: int) -> asyncpg.Record | None:
+    pool = _require_pool()
 
-        async with con.execute("SELECT * FROM users") as cur:
-            results = await cur.fetchall()
+    async with pool.acquire() as con:
+        row = await con.fetchrow(
+            "SELECT id, username, age, email FROM users WHERE id = $1",
+            user_id,
+        )
 
-            return [dict(row) for row in results]
+        return row if row else None
+
+
+async def get_all_users() -> list[asyncpg.Record]:
+    pool = _require_pool()
+
+    async with pool.acquire() as con:
+        rows = await con.fetch("SELECT * FROM users")
+
+        return rows
