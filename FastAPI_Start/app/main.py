@@ -1,14 +1,13 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
-from .database import create_table, engine
+from .database import engine
 from .routers import users
 
 
 # Application lifecycle control
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_table()
     yield
 
     await engine.dispose()

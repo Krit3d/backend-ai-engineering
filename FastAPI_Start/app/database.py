@@ -9,17 +9,12 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from .config import settings
-from .models import Base, User
+from .models import User
 
 engine = create_async_engine(settings.get_db_url(), echo=True)
 AsyncSessionLocal = async_sessionmaker(
     bind=engine, class_=AsyncSession, expire_on_commit=False
 )
-
-
-async def create_table() -> None:
-    async with engine.begin() as con:
-        await con.run_sync(Base.metadata.create_all)
 
 
 async def add_user(username: str, age: int, email: EmailStr) -> int:
