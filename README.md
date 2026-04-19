@@ -17,7 +17,7 @@ Welcome! This mono-repository contains a collection of microservices, data extra
 **Every project here contains his own README with setup instructions.**
 | Project | Description | Stack | Status |
 | :--- | :--- | :--- | :--- |
-| [**🚀 FastAPI (CORE)**](./FastAPI_Start) | Asynchronous API with Pydantic validation, Repository pattern, SQLAlchemy 2.0 ORM, Alembic migrations, and Docker containerization. | `FastAPI`, `asyncpg`, `PostgreSQL`, `Docker` | Active Development |
+| [**🚀 FastAPI (CORE)**](./FastAPI_Start) | Asynchronous API with Pydantic validation, Repository pattern, SQLAlchemy 2.0 ORM, Alembic migrations, and Docker containerization. | `FastAPI`, `SQLAlchemy`, `Alembic`, `Docker` | Active Development |
 | [**🤖 TG_Bot**](./TG_Bot) | An asynchronous Telegram bot with external API integration (CoinGecko) and SQLite DB for user management. | `aiogram 3`, `aiohttp`, `sqlite3` | Completed |
 | [**🕷️ Parser**](./Parser) | Web scraping tool for extracting structured data. | `BeautifulSoup4`, `requests` | Completed |
 | [**📡 API_Scout**](./API_Scout) | A lightweight script for testing and fetching data from public APIs. | `requests`, `JSON` | Completed |
