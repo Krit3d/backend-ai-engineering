@@ -8,17 +8,16 @@ Welcome! This mono-repository contains a collection of microservices, data extra
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/fastapi-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-07405E?style=for-the-badge&logo=sqlite&logoColor=white)
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
-![aiohttp](https://img.shields.io/badge/aiohttp-2C5BB4?style=for-the-badge&logo=aiohttp&logoColor=white)
-![aiogram 3](https://img.shields.io/badge/aiogram_3-41A5EE?style=for-the-badge&logo=telegram&logoColor=white)
 
 ### 📁 Projects in this Repository
 
 **Every project here contains his own README with setup instructions.**
 | Project | Description | Stack | Status |
 | :--- | :--- | :--- | :--- |
-| [**🚀 FastAPI (CORE)**](./FastAPI_Start) | Asynchronous API with Pydantic validation, robust PostgreSQL connection pooling, and Docker containerization. The core for future AI orchestration. | `FastAPI`, `asyncpg`, `PostgreSQL`, `Docker` | Active Development |
+| [**🚀 FastAPI (CORE)**](./FastAPI_Start) | Asynchronous API with Pydantic validation, Repository pattern, SQLAlchemy 2.0 ORM, Alembic migrations, and Docker containerization. | `FastAPI`, `asyncpg`, `PostgreSQL`, `Docker` | Active Development |
 | [**🤖 TG_Bot**](./TG_Bot) | An asynchronous Telegram bot with external API integration (CoinGecko) and SQLite DB for user management. | `aiogram 3`, `aiohttp`, `sqlite3` | Completed |
 | [**🕷️ Parser**](./Parser) | Web scraping tool for extracting structured data. | `BeautifulSoup4`, `requests` | Completed |
 | [**📡 API_Scout**](./API_Scout) | A lightweight script for testing and fetching data from public APIs. | `requests`, `JSON` | Completed |
@@ -27,8 +26,8 @@ Welcome! This mono-repository contains a collection of microservices, data extra
 - [x] **Phase 1: Simple API Data Fetching.** Basic Python, `requests` library for public API data retrieval (`API_Scout`).
 - [x] **Phase 2: Web Scraping.** Data extraction from websites using `BeautifulSoup4`, text parsing, and structuring (`Parser`).
 - [x] **Phase 3: Async Bot & Persistence.** Asynchronous programming with `asyncio` and `aiohttp`, Telegram Bot integration, and SQLite database for user management (`TG_Bot`).
-- [/] **Phase 4: Backend & Persistence.** FastAPI, PostgreSQL, Migrations (Alembic), Dockerization. (Current)
-- [ ] **Phase 5: AI Integration.** Building RAG pipelines, AI-agent orchestration, and LLM tool-calling.
+- [x] **Phase 4: Backend & Persistence.** FastAPI, PostgreSQL, Async ORM (SQLAlchemy 2.0), Migrations (Alembic), Dockerization.
+- [/] **Phase 5: AI Integration.** Building RAG pipelines, AI-agent orchestration, and LLM tool-calling. (Current)
 
 ---
 

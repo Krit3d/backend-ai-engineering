@@ -1,37 +1,38 @@
 # 🚀 Core API Service (FastAPI)
 
-This module serves as the foundational backend architecture for future AI-agent integration and data orchestration. It is built with a focus on true asynchrony, modularity, and strict data validation.
+This module serves as the foundational backend architecture for future AI-agent integration and data orchestration. It is built with a focus on true asynchrony, modularity, and strict data validation, utilizing the Repository pattern for clean architecture.
 
 ## ⚙️ Tech Stack
 - **Framework:** FastAPI
 - **Database:** PostgreSQL (via `asyncpg` for high-performance non-blocking I/O)
+- **ORM & Migrations:** SQLAlchemy 2.0 (asyncio) & Alembic
 - **Validation:** Pydantic V2 (`pydantic-settings` for configuration)
 - **Server:** Uvicorn
 - **Containerization:** Docker & Docker Compose
 
 ## 🏗️ Architectural Highlights
-- **Connection Pooling:** A robust PostgreSQL connection pool is initialized at application startup (lifespan), ensuring efficient resource management and preventing connection exhaustion under high concurrency.
-- **Separation of Concerns:** The application is strictly divided into routing (`routers/`), data validation (`schemas/`), and database logic (`database.py`).
-- **Environment Management:** Sensitive data and configurations (like DB credentials) are securely managed via `.env` files and a dedicated `config.py` module.
+- **Repository Pattern:** Database logic is strictly decoupled from HTTP routers, making the codebase easier to maintain, test, and scale.
+- **Asynchronous ORM:** Fully asynchronous database interactions using SQLAlchemy 2.0 and the `asyncpg` driver.
+- **Automated Migrations:** Database schema changes are version-controlled and applied via Alembic.
+- **Environment Management:** Sensitive data and configurations (like DB credentials) are securely managed via `.env` files and a dedicated `config.py` module. Dynamic DB URL generation is used to keep `alembic.ini` clean.
 
 ## 📂 Project Structure
-
 ```text
 FastAPI_Start/
 │
 ├── app/
-│   ├── routers/
-│   │   ├── __init__.py
-│   │   └── users.py        # API endpoints (GET, POST)
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   └── users.py        # Pydantic validation models
+│   ├── alembic/            # Database migration scripts and env
+│   ├── repositories/       # DB interaction logic (Repository Pattern)
+│   ├── routers/            # API endpoints (GET, POST)
+│   ├── schemas/            # Pydantic validation models
 │   ├── config.py           # Environment variables validation
-│   ├── database.py         # Asyncpg pool & SQL queries
-│   └── main.py             # FastAPI app & pool init
+│   ├── database.py         # Async engine & session management
+│   ├── main.py             # FastAPI app init
+│   └── models.py           # SQLAlchemy declarative base and tables
 │
 ├── .dockerignore           # Docker build exclusions
 ├── .env                    # Local env vars (DB credentials)
+├── alembic.ini             # Alembic configuration
 ├── docker-compose.yml      # API & PostgreSQL orchestration
 ├── Dockerfile              # Container setup
 ├── README.md               # Local documentation
@@ -39,7 +40,7 @@ FastAPI_Start/
 ```
 
 ## 🛠️ Quick Start
-To run this app, ensure you have installed 'Docker Desktop' or similar.
+To run this app, ensure you have installed Docker Desktop or the Docker Engine.
 
 **1. Clone the repository and navigate to the project directory:**
 ```bash
@@ -50,7 +51,7 @@ cd FastAPI_Start
 **2. Configure Environment Variables:**
 Create a `.env` file in the root of the `FastAPI_Start` directory and configure your database credentials (ensure they match your `docker-compose.yml` configuration):
 ```env
-POSTGRES_HOST=db     # Use 'db' if running inside docker-network, or 'localhost'
+POSTGRES_HOST=db
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=yourpassword
@@ -61,29 +62,13 @@ POSTGRES_DB=fastapi_db
 ```bash
 docker-compose up -d --build
 ```
-*The API will be available at `http://127.0.0.1:8000` and the Postgres database will be running in the background.*
 
-## Run Locally (For Development)
-If you prefer to run the FastAPI app directly on your host machine, ensure you have an active PostgreSQL instance running locally.
-
-**1. Setup your virtual environment:**
+**4. Apply Database Migrations:**
+Once the containers are running, execute Alembic inside the backend container to create the tables:
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+docker compose exec backend alembic upgrade head
 ```
-
-**2. Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
-
-**3. Configure `.env`:**
-Set `POSTGRES_HOST=localhost` in your `.env` file to point to your local PostgreSQL instance.
-
-**4. Start the server:**
-```bash
-uvicorn app.main:app --reload
-```
+(Note: Replace backend with the actual name of your API service in docker-compose.yml if different).
 
 ## 📡 API Documentation
 Once the server is running, FastAPI automatically generates interactive API documentation.
